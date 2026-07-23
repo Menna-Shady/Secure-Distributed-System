@@ -1,0 +1,9 @@
+flask
+psycopg2-binary
+pika
+PyJWT
+bcrypt
+authlib
+requests
+cryptography
+Flask-Limiter

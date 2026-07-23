@@ -1,0 +1,8 @@
+flask
+psycopg2-binary
+pyjwt
+bcrypt
+authlib 
+flask-dance 
+requests
+Flask-Limiter

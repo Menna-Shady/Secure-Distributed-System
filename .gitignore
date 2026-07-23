@@ -1,0 +1,26 @@
+# Secrets - NEVER commit these
+.env
+*.key
+server.crt
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+
+# Uploads
+api/uploads/storage/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# VSCode
+.vscode/

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SecureSystem — User Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root{--bg:#080c10;--surface:#0d1117;--surface2:#161b22;--border:#21262d;--accent:#00ff88;--accent2:#0affef;--danger:#ff4757;--warning:#ffa502;--info:#3a86ff;--purple:#a855f7;--text:#e6edf3;--muted:#7d8590;--font-mono:'Share Tech Mono',monospace;--font-main:'Syne',sans-serif;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:var(--font-main);min-height:100vh;}
+  body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(0,255,136,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,136,.03) 1px,transparent 1px);background-size:40px 40px;}
+  #login-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:100;background:var(--bg);}
+  .login-box{width:420px;border:1px solid var(--border);background:var(--surface);padding:48px 40px;position:relative;}
+  .login-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));}
+  .login-logo{font-size:11px;letter-spacing:4px;color:var(--accent);font-family:var(--font-mono);margin-bottom:8px;}
+  .login-title{font-size:26px;font-weight:800;margin-bottom:32px;}.login-title span{color:var(--accent);}
+  .field{margin-bottom:20px;}.field label{display:block;font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;font-family:var(--font-mono);}
+  .field input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:12px 16px;font-size:14px;font-family:var(--font-mono);outline:none;transition:border-color .2s;}
+  .field input:focus{border-color:var(--accent);}
+  .login-btn{width:100%;background:var(--accent);color:#000;border:none;padding:14px;font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;cursor:pointer;font-family:var(--font-main);transition:opacity .2s;margin-top:8px;}
+  .login-btn:hover{opacity:.85;}.login-btn:disabled{opacity:.4;cursor:not-allowed;}
+  .google-btn{width:100%;background:transparent;color:var(--text);border:1px solid var(--border);padding:13px;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:var(--font-main);transition:all .2s;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:10px;}
+  .google-btn:hover{border-color:#4285F4;color:#4285F4;background:rgba(66,133,244,0.05);}
+  .login-error{margin-top:16px;color:var(--danger);font-size:13px;font-family:var(--font-mono);display:none;}
+  #app{display:none;position:relative;z-index:1;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:60px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:50;}
+  .brand{display:flex;align-items:center;gap:12px;}.brand-icon{width:32px;height:32px;border:1px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:14px;}
+  .brand-name{font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;}.brand-name span{color:var(--accent);}
+  .user-badge{font-family:var(--font-mono);font-size:12px;color:var(--muted);}
+  .user-badge span{color:var(--accent);}
+  .logout-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 16px;font-size:12px;font-family:var(--font-mono);cursor:pointer;transition:all .2s;letter-spacing:1px;}
+  .logout-btn:hover{border-color:var(--danger);color:var(--danger);}
+  .main{padding:32px;max-width:900px;margin:0 auto;}
+  .section{margin-bottom:32px;}
+  .section-title{font-size:11px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;font-family:var(--font-mono);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+  .panel{background:var(--surface);border:1px solid var(--border);padding:24px;}
+  .upload-zone{border:2px dashed var(--border);padding:40px;text-align:center;cursor:pointer;transition:all .2s;font-family:var(--font-mono);}
+  .upload-zone:hover{border-color:var(--accent);background:rgba(0,255,136,.03);}
+  .upload-zone input{display:none;}
+  .upload-icon{font-size:32px;margin-bottom:12px;}
+  .upload-text{font-size:13px;color:var(--muted);margin-bottom:4px;}
+  .upload-hint{font-size:11px;color:var(--muted);letter-spacing:1px;}
+  .upload-btn{background:var(--accent);color:#000;border:none;padding:12px 32px;font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;cursor:pointer;font-family:var(--font-main);margin-top:16px;display:none;transition:opacity .2s;}
+  .upload-btn:hover{opacity:.85;}.upload-btn:disabled{opacity:.4;cursor:not-allowed;}
+  .selected-file{font-size:12px;color:var(--accent);font-family:var(--font-mono);margin-top:8px;}
+  .msg{padding:12px 16px;font-family:var(--font-mono);font-size:13px;margin-top:12px;display:none;}
+  .msg.ok{background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.2);color:var(--accent);}
+  .msg.err{background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.2);color:var(--danger);}
+  .data-table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:13px;}
+  .data-table th{text-align:left;padding:10px 14px;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--surface2);}
+  .data-table td{padding:12px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle;}
+  .data-table tr:last-child td{border-bottom:none;}
+  .data-table tr:hover td{background:var(--surface2);}
+  .dl-btn{background:transparent;border:1px solid var(--border);color:var(--accent);padding:4px 12px;font-size:11px;font-family:var(--font-mono);cursor:pointer;letter-spacing:1px;transition:all .2s;}
+  .dl-btn:hover{background:rgba(0,255,136,.05);border-color:var(--accent);}
+  .hash{color:var(--muted);font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .empty-state{text-align:center;padding:40px;color:var(--muted);font-family:var(--font-mono);font-size:13px;}
+  .loading{font-family:var(--font-mono);font-size:13px;color:var(--accent);text-align:center;padding:30px;letter-spacing:2px;}
+  .refresh-btn{background:transparent;border:1px solid var(--border);color:var(--accent);padding:6px 16px;font-size:11px;font-family:var(--font-mono);cursor:pointer;letter-spacing:2px;text-transform:uppercase;transition:all .2s;float:right;}
+  .refresh-btn:hover{background:rgba(0,255,136,.05);border-color:var(--accent);}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .main > *{animation:fadeIn .4s ease both;}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">SECURESYSTEM</div>
+    <h2 class="login-title">User <span>Portal</span></h2>
+    <div class="field"><label>Email</label><input type="email" id="email" placeholder="user@example.com"/></div>
+    <div class="field"><label>Password</label><input type="password" id="password" placeholder="••••••••"/></div>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">SIGN IN</button>
+    <div style="display:flex;align-items:center;gap:12px;margin-top:20px;">
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+      <span style="font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:2px;">OR</span>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+    </div>
+    <button class="google-btn" onclick="doGoogleLogin()">
+      <svg width="18" height="18" viewBox="0 0 48 48" style="flex-shrink:0"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+      CONTINUE WITH GOOGLE
+    </button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<div id="app">
+  <nav class="topbar">
+    <div class="brand"><div class="brand-icon">🛡</div><div class="brand-name">Secure<span>System</span></div></div>
+    <div style="display:flex;align-items:center;gap:20px;">
+      <div class="user-badge">Logged in as <span id="user-email">—</span></div>
+      <button class="logout-btn" onclick="doLogout()">LOGOUT</button>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="section">
+      <div class="section-title">// upload file</div>
+      <div class="panel">
+        <div class="upload-zone" onclick="document.getElementById('file-input').click()">
+          <div class="upload-icon">📁</div>
+          <div class="upload-text">Click to select a file</div>
+          <div class="upload-hint">ALLOWED: PDF, TXT, DOCX, PNG, JPG — MAX 5MB</div>
+          <div class="selected-file" id="selected-name"></div>
+          <input type="file" id="file-input" onchange="onFileSelect(this)"/>
+        </div>
+        <button class="upload-btn" id="upload-btn" onclick="doUpload()">⬆ UPLOAD FILE</button>
+        <div class="msg" id="upload-msg"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">// my files <button class="refresh-btn" onclick="loadFiles()">↻ REFRESH</button></div>
+      <div class="panel" id="files-area"><div class="loading">LOADING...</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const BASE='https://localhost';
+let token='', currentFile=null;
+
+async function doLogin(){
+  const email=document.getElementById('email').value.trim();
+  const pass=document.getElementById('password').value;
+  const btn=document.getElementById('login-btn');
+  if(!email||!pass){showErr('Please fill all fields');return;}
+  btn.disabled=true;btn.textContent='SIGNING IN...';
+  try{
+    const res=await fetch(`${BASE}/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+    const data=await res.json();
+    if(!res.ok){showErr(data.error||'Login failed');return;}
+    enterApp(data.token, email);
+  }catch(e){showErr('Cannot connect to server');}
+  finally{btn.disabled=false;btn.textContent='SIGN IN';}
+}
+
+function doGoogleLogin(){window.location.href=`${BASE}/login/google?next=user`;}
+function handleOAuthCallback(){
+  const params=new URLSearchParams(window.location.search);
+  const t=params.get('token');
+  const err=params.get('error');
+  if(err){showErr('Google login failed, please try again');return;}
+  if(t){
+    try{
+      const payload=JSON.parse(atob(t.split('.')[1]));
+      const email=payload.data?.email||payload.email||'user';
+      token=t;  // حفظ الـ token الأول قبل أي حاجة
+      window.history.replaceState({},'','/user');
+      document.getElementById('login-screen').style.display='none';
+      document.getElementById('app').style.display='block';
+      document.getElementById('user-email').textContent=email;
+      loadFiles();
+    }catch(e){showErr('Invalid token from OAuth');}
+  }
+}
+
+function enterApp(t, email){
+  token=t;
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('user-email').textContent=email;
+  loadFiles();
+}
+
+function showErr(msg){const e=document.getElementById('login-error');e.textContent='⚠ '+msg;e.style.display='block';}
+function doLogout(){token='';document.getElementById('login-screen').style.display='flex';document.getElementById('app').style.display='none';document.getElementById('password').value='';}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('login-screen').style.display!=='none')doLogin();});
+window.addEventListener('DOMContentLoaded',handleOAuthCallback);
+
+function onFileSelect(input){
+  currentFile=input.files[0];
+  if(currentFile){
+    document.getElementById('selected-name').textContent='Selected: '+currentFile.name;
+    document.getElementById('upload-btn').style.display='block';
+  }
+}
+
+async function doUpload(){
+  if(!currentFile)return;
+  const btn=document.getElementById('upload-btn');
+  const msg=document.getElementById('upload-msg');
+  btn.disabled=true;btn.textContent='UPLOADING...';msg.style.display='none';
+  try{
+    const fd=new FormData();fd.append('file',currentFile);
+    const res=await fetch(`${BASE}/upload`,{method:'POST',headers:{'Authorization':`Bearer ${token}`},body:fd});
+    const data=await res.json();
+    if(!res.ok){showMsg('err',data.error||'Upload failed');return;}
+    showMsg('ok','✓ File uploaded successfully: '+data.filename);
+    currentFile=null;
+    document.getElementById('selected-name').textContent='';
+    document.getElementById('file-input').value='';
+    btn.style.display='none';
+    loadFiles();
+  }catch(e){showMsg('err','Connection error');}
+  finally{btn.disabled=false;btn.textContent='⬆ UPLOAD FILE';}
+}
+
+function showMsg(type,text){const m=document.getElementById('upload-msg');m.className='msg '+type;m.textContent=text;m.style.display='block';}
+
+async function loadFiles(){
+  document.getElementById('files-area').innerHTML='<div class="loading">LOADING...</div>';
+  try{
+    const res=await fetch(`${BASE}/my/files`,{headers:{'Authorization':`Bearer ${token}`}});
+    const data=await res.json();
+    if(!data.files?.length){document.getElementById('files-area').innerHTML='<div class="empty-state">No files uploaded yet</div>';return;}
+    document.getElementById('files-area').innerHTML=`<table class="data-table">
+      <thead><tr><th>#</th><th>Filename</th><th>SHA-256 Hash</th><th>Action</th></tr></thead>
+      <tbody>${data.files.map(f=>`<tr>
+        <td style="color:var(--muted)">${f.id}</td>
+        <td style="color:var(--accent)">${f.filename}</td>
+        <td><div class="hash" title="${f.file_hash}">${f.file_hash||'—'}</div></td>
+        <td><button class="dl-btn" onclick="doDownload('${f.filename}')">⬇ DOWNLOAD</button></td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+  }catch(e){document.getElementById('files-area').innerHTML='<div class="empty-state" style="color:var(--danger)">Error loading files</div>';}
+}
+
+async function doDownload(filename){
+  try{
+    const res=await fetch(`${BASE}/download/${filename}`,{headers:{'Authorization':`Bearer ${token}`}});
+    if(!res.ok){alert('Download failed or access denied');return;}
+    const blob=await res.blob();
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);
+  }catch(e){alert('Download error');}
+}
+</script>
+</body>
+</html>
